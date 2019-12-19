@@ -1,5 +1,6 @@
-Demo of the MIQUBO Method of Feature Selection
-==============================================
+==================================
+MIQUBO Method of Feature Selection
+==================================
 The demo illustrates the MIQUBO method by finding an optimal feature set for predicting
 survival of Titanic passengers. It uses records provided in file
 ``formatted_titanic.csv``, which is a feature-engineered version of a public database of
@@ -66,5 +67,5 @@ X. V. Nguyen, J. Chan, S. Romano, and J. Bailey,
 
 License
 -------
-Released under the Apache License 2.0. See `LICENSE <../LICENSE>`_ file.
+Released under the Apache License 2.0. See `LICENSE <LICENSE>`_ file.
 
