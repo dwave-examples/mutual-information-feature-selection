@@ -1,4 +1,4 @@
-=================================
+==================================
 MIQUBO Method of Feature Selection
 ==================================
 The demo illustrates the MIQUBO method by finding an optimal feature set for
