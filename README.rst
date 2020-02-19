@@ -1,3 +1,6 @@
+.. image:: https://circleci.com/gh/dwave-examples/mutual-information-feature-selection.svg?style=svg
+    :target: https://circleci.com/gh/dwave-examples/mutual-information-feature-selection
+    :alt: Linux/Mac/Windows build status
 ==================================
 MIQUBO Method of Feature Selection
 ==================================
