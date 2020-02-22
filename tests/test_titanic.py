@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 import unittest
 
 import numpy as np
@@ -83,4 +84,4 @@ class TestTitanicDemo(unittest.TestCase):
 
         # Raise error when return code is nonzero
         demo_file = os.path.join(project_dir, 'titanic.py')
-        subprocess.check_output(["python", demo_file])
+        subprocess.check_output(["sys.executable", demo_file])
