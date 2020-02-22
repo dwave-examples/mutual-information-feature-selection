@@ -84,4 +84,4 @@ class TestTitanicDemo(unittest.TestCase):
 
         # Raise error when return code is nonzero
         demo_file = os.path.join(project_dir, 'titanic.py')
-        subprocess.check_output(["sys.executable", demo_file])
+        subprocess.check_output([sys.executable, demo_file])
