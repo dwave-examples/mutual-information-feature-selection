@@ -17,17 +17,21 @@ from subprocess import Popen, PIPE,STDOUT
 import unittest
 import os
 import time
+import sys
+
+project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class IntegrationTests(unittest.TestCase):
 
     def test_mutual_information_feature_selection(self):
-        cwd=os.getcwd()
-        p = Popen(["python",  cwd+"/titanic.py"], stdout=PIPE, stdin=PIPE, stderr=STDOUT)    
+        demo_file = os.path.join(project_dir, 'titanic.py')
+        p = Popen([sys.executable,  demo_file], stdout=PIPE, stdin=PIPE, stderr=STDOUT)    
         p.stdin.write(b'63\n')
         time.sleep(5)
         output = p.communicate()[0]
         output=str(output)
-        print("Example output \n"+output)
+        if os.getenv('DEBUG_OUTPUT'):
+            print("Example output \n"+ output)
 
         with self.subTest(msg="Verify if output contains 'Your plots are saved' \n"):
             self.assertIn("Your plots are saved".upper(),output.upper())
