@@ -27,7 +27,6 @@ class IntegrationTests(unittest.TestCase):
         demo_file = os.path.join(project_dir, 'titanic.py')
         p = Popen([sys.executable, demo_file], stdout=PIPE, stdin=PIPE, stderr=STDOUT)    
         p.stdin.write(b'63\n')
-        time.sleep(5)
         output = p.communicate()[0]
         output = str(output).upper()
         if os.getenv('DEBUG_OUTPUT'):
