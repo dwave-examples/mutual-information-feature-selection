@@ -12,14 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import subprocess
-from subprocess import Popen, PIPE,STDOUT
-import unittest
 import os
-import time
 import sys
+import unittest
+from subprocess import Popen, PIPE,STDOUT
 
 project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 class IntegrationTests(unittest.TestCase):
 
