@@ -24,8 +24,7 @@ import pandas as pd
 
 # D-Wave Ocean tools
 import dimod
-from dwave.embedding.chimera import find_clique_embedding
-from dwave.system import DWaveSampler, FixedEmbeddingComposite
+from dwave.system import DWaveCliqueSampler
 
 
 # Define MI calculations
@@ -128,16 +127,8 @@ def run_demo():
         bqm.add_interaction(f0, f1, -cmi_01)
         bqm.add_interaction(f1, f0, -cmi_10)
 
-    bqm.normalize()  # Normalize biases & interactions to the range -1, 1
-
     # Set up a QPU sampler with a fully-connected graph of all the variables
-    qpu_sampler = DWaveSampler(solver={'qpu': True})
-
-    embedding = find_clique_embedding(bqm.variables,
-                                      16, 16, 4,  # size of the chimera lattice
-                                      target_edges=qpu_sampler.edgelist)
-
-    sampler = FixedEmbeddingComposite(qpu_sampler, embedding)
+    sampler = DWaveCliqueSampler(solver=dict(qpu=True))
 
     # For each number of features, k, penalize selection of fewer or more features
     selected_features = np.zeros((len(features), len(features)))
