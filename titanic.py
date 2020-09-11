@@ -128,7 +128,7 @@ def run_demo():
         bqm.add_interaction(f1, f0, -cmi_10)
 
     # Set up a QPU sampler with a fully-connected graph of all the variables
-    sampler = DWaveCliqueSampler(solver=dict(qpu=True))
+    sampler = DWaveCliqueSampler(solver=dict(topology__type='pegasus', qpu=True))
 
     # For each number of features, k, penalize selection of fewer or more features
     selected_features = np.zeros((len(features), len(features)))
