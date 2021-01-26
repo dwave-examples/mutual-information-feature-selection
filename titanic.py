@@ -73,6 +73,17 @@ def conditional_mutual_information(p, j, *conditional_indices):
     return (conditional_shannon_entropy(np.sum(p, axis=j), *conditional_indices)
             - conditional_shannon_entropy(p, j, *conditional_indices))
 
+def maximum_energy_delta(bqm):
+    """Compute conservative bound on maximum change in energy when flipping a single variable"""
+    delta_max = 0
+    for i in bqm.iter_variables():
+        delta = abs(bqm.get_linear(i))
+        for j in bqm.iter_neighbors(i):
+            delta += abs(bqm.get_quadratic(i,j))
+        if delta > delta_max:
+            delta_max = delta
+    return delta_max
+
 
 def run_demo():
     # Read the feature-engineered data into a pandas dataframe
@@ -132,10 +143,16 @@ def run_demo():
 
     # For each number of features, k, penalize selection of fewer or more features
     selected_features = np.zeros((len(features), len(features)))
+
+    # Specify the penalty based on the maximum change in the objective
+    # that could occur by flipping a single variable.  This ensures
+    # that the ground state will satisfy the constraints.
+    penalty = maximum_energy_delta(bqm)
+
     for k in range(1, len(features) + 1):
         kbqm = bqm.copy()
         kbqm.update(dimod.generators.combinations(features, k,
-                                                  strength=6))  # Determines the penalty
+                                                  strength=penalty))  # Determines the penalty
 
         sample = sampler.sample(kbqm, num_reads=10000).first.sample
 
