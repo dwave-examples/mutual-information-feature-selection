@@ -154,7 +154,9 @@ def run_demo():
         kbqm.update(dimod.generators.combinations(features, k,
                                                   strength=penalty))  # Determines the penalty
 
-        sample = sampler.sample(kbqm, num_reads=10000).first.sample
+        sample = sampler.sample(kbqm,
+                                label='Example - MI Feature Selection',
+                                num_reads=10000).first.sample
 
         for fi, f in enumerate(features):
             selected_features[k-1, fi] = sample[f]
