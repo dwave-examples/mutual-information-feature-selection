@@ -135,8 +135,11 @@ def run_demo():
     for f0, f1 in itertools.combinations(features, 2):
         cmi_01 = conditional_mutual_information(prob(dataset[['survived', f0, f1]].values), 1, 2)
         cmi_10 = conditional_mutual_information(prob(dataset[['survived', f1, f0]].values), 1, 2)
-        bqm.add_interaction(f0, f1, -cmi_01)
-        bqm.add_interaction(f1, f0, -cmi_10)
+        # Refer to Nguyen et al. (2014), Section 3: to express the
+        # interactions in terms of a symmetric matrix, the individual
+        # entries are given by 1/2 * (CMI_01 + CMI_10).
+        cmi_avg = 0.5 * (cmi_01 + cmi_10)
+        bqm.add_interaction(f0, f1, -cmi_avg)
 
     # Set up a QPU sampler with a fully-connected graph of all the variables
     sampler = DWaveCliqueSampler()
