@@ -50,6 +50,12 @@ def shannon_entropy(p):
 def conditional_shannon_entropy(p, *conditional_indices):
     """Conditional Shannon entropy H(X|Y) = H(X,Y) - H(Y)."""
 
+    # Sanity check on validity of conditional_indices.  In particular,
+    # try to trap issues in which dimensions have been removed from
+    # probability table through marginalization, but
+    # conditional_indices were not updated accordingly.
+    assert(all(ci < p.ndim for ci in conditional_indices))
+
     axis = tuple(i for i in np.arange(len(p.shape))
                  if i not in conditional_indices)
 
