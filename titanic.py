@@ -76,7 +76,14 @@ def conditional_mutual_information(p, j, *conditional_indices):
 
     Calculated as I(X;Y|Z) = H(X|Z) - H(X|Y,Z)"""
 
-    return (conditional_shannon_entropy(np.sum(p, axis=j), *conditional_indices)
+    # Compute an updated version of the conditional indices for use
+    # when the probability table is marginalized over dimension j.
+    # This marginalization removes one dimension, so any conditional
+    # indices pointing to dimensions after this one must be adjusted
+    # accordingly.
+    marginal_conditional_indices = [i-1 if i > j else i for i in conditional_indices]
+
+    return (conditional_shannon_entropy(np.sum(p, axis=j), *marginal_conditional_indices)
             - conditional_shannon_entropy(p, j, *conditional_indices))
 
 def maximum_energy_delta(bqm):
