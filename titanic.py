@@ -128,6 +128,7 @@ def run_demo():
     sorted_scores = sorted(scores.items(), key=lambda pair: pair[1], reverse=True)
     dataset = dataset[[column[0] for column in sorted_scores[0:keep]] + ["survived"]]
     features = list(set(dataset.columns).difference(('survived',)))
+    features = sorted(features)
 
     # Build a QUBO that maximizes MI between survival and a subset of features
     bqm = dimod.BinaryQuadraticModel.empty(dimod.BINARY)
