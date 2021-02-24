@@ -45,6 +45,12 @@ class TestTwoDimensionalCalcs(unittest.TestCase):
 
         self.assertAlmostEqual(shannon_entropy(np.sum(self.prob, axis=0)), self.hy)
 
+    def test_conditional_shannon_entropy(self):
+        # H(X | Y) = H(X,Y) - H(Y)
+        self.assertAlmostEqual(conditional_shannon_entropy(self.prob, 1), self.hxy - self.hy)
+        # H(Y | X) = H(X,Y) - H(X)
+        self.assertAlmostEqual(conditional_shannon_entropy(self.prob, 0), self.hxy - self.hx)
+
     def test_mutual_information(self):
         # I(X; Y) = H(X) - H(X | Y)
         # H(X | Y) = H(X, Y) - H(Y)
