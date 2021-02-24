@@ -108,8 +108,6 @@ class TestThreeDimensionalCalcs(unittest.TestCase):
         # I(X;Y|Z) = I(Y;X|Z)
         self.assertAlmostEqual(conditional_mutual_information(self.p, 0, 2), cmi)
 
-
-class TestTitanicFunctions(unittest.TestCase):
     def test_prob(self):
         data = np.array([[True, 0, 4],
                          [True, 2, 3],
@@ -135,7 +133,6 @@ class TestTitanicFunctions(unittest.TestCase):
         self.assertEqual(np.sum(flat_prob), 1)   # probabilities sum to 1
         self.assertEqual(np.sum(flat_prob==0.4), 1)
         self.assertEqual(np.sum(flat_prob==0.2), 3)
-
 
 
 class TestTitanicDemo(unittest.TestCase):
