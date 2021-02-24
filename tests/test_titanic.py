@@ -27,13 +27,31 @@ class TestTwoDimensionalCalcs(unittest.TestCase):
     """Verify entropy and mutual information calculations for two random variables."""
     @classmethod
     def setUpClass(cls):
+        # Probability table for use in verification:
         cls.prob = np.array([[0.5, 0], [0.3, 0.2]])
 
-    def test_shannon_entropy(self):
+        # Directly calculated values, for verification:
+        cls.hxy = -0.5*np.log2(0.5) - 0.3*np.log2(0.3) -0.2*np.log2(0.2)
+        cls.hx = -0.5*np.log2(0.5) - 0.5*np.log2(0.5)
+        cls.hy = -0.8*np.log2(0.8) - 0.2*np.log2(0.2)
+
+    def test_joint_shannon_entropy(self):
         result = shannon_entropy(self.prob)
 
-        expected = -0.5*np.log2(0.5) - 0.3*np.log2(0.3) -0.2*np.log2(0.2)
-        self.assertAlmostEqual(result, expected)
+        self.assertAlmostEqual(result, self.hxy)
+
+    def test_marginal_shannon_entropy(self):
+        self.assertAlmostEqual(shannon_entropy(np.sum(self.prob, axis=1)), self.hx)
+
+        self.assertAlmostEqual(shannon_entropy(np.sum(self.prob, axis=0)), self.hy)
+
+    def test_mutual_information(self):
+        # I(X; Y) = H(X) - H(X | Y)
+        # H(X | Y) = H(X, Y) - H(Y)
+        expected = self.hx - (self.hxy - self.hy)
+        # Note: I(X ; Y) = I(Y ; X)
+        self.assertAlmostEqual(mutual_information(self.prob, 0), expected)
+        self.assertAlmostEqual(mutual_information(self.prob, 1), expected)
 
 
 class TestTitanicFunctions(unittest.TestCase):
@@ -87,9 +105,6 @@ class TestTitanicFunctions(unittest.TestCase):
 
         result = conditional_shannon_entropy(p, 0)
         self.assertAlmostEqual(result, expected)
-
-    def test_mutual_information(self):
-        pass
 
     def test_conditional_mutual_information(self):
         pass
