@@ -60,6 +60,55 @@ class TestTwoDimensionalCalcs(unittest.TestCase):
         self.assertAlmostEqual(mutual_information(self.prob, 1), expected)
 
 
+class TestThreeDimensionalCalcs(unittest.TestCase):
+    """Verify calculations with three random variables."""
+    @classmethod
+    def setUpClass(cls):
+        cls.p = np.array([[[0.2, 0.0],
+                       [0.1, 0.1]],
+                      [[0.0, 0.3],
+                       [0.25, 0.05]]])
+
+    def test_conditional_shannon_entropy(self):
+        p = self.p
+
+        p_x0 = sum(sum(p[0, :, :]))  # p(x=0)
+        p_x1 = sum(sum(p[1, :, :]))  # p(x=1)
+
+        # Calculating conditional shannon entropy using the definition
+        # sum [p(x,y,z) * log2 (p(x)/p(x,y,z))]
+        expected = 0
+        for y in range(2):
+            for z in range(2):
+                p_xyz0 = p[0, y, z]     # p(x=0, y, z)
+                p_xyz1 = p[1, y, z]     # p(x=1, y, z)
+
+                if p_xyz0 != 0:
+                    expected += (p_xyz0 * np.log2(p_x0/p_xyz0))
+                if p_xyz1 != 0:
+                    expected += (p_xyz1 * np.log2(p_x1/p_xyz1))
+
+        result = conditional_shannon_entropy(p, 0)
+        self.assertAlmostEqual(result, expected)
+
+    def test_conditional_mutual_information(self):
+        # I(X;Y|Z) = H(X|Z) - H(X|Y,Z)
+
+        # H(X|Z) = H(X,Z) - H(Z)
+        pxz = np.sum(self.p, axis=1)
+        pz = np.sum(pxz, axis=0)
+        hx_given_z = shannon_entropy(pxz) - shannon_entropy(pz)
+
+        # H(X|Y,Z) = H(X,Y,Z) - H(Y,Z)
+        pyz = np.sum(self.p, axis=0)
+        hx_given_yz = shannon_entropy(self.p) - shannon_entropy(pyz)
+
+        cmi = hx_given_z - hx_given_yz
+        self.assertAlmostEqual(conditional_mutual_information(self.p, 1, 2), cmi)
+        # I(X;Y|Z) = I(Y;X|Z)
+        self.assertAlmostEqual(conditional_mutual_information(self.p, 0, 2), cmi)
+
+
 class TestTitanicFunctions(unittest.TestCase):
     def test_prob(self):
         data = np.array([[True, 0, 4],
@@ -87,33 +136,6 @@ class TestTitanicFunctions(unittest.TestCase):
         self.assertEqual(np.sum(flat_prob==0.4), 1)
         self.assertEqual(np.sum(flat_prob==0.2), 3)
 
-    def test_conditional_shannon_entropy(self):
-        p = np.array([[[0.2, 0.0],
-                       [0.1, 0.1]],
-                      [[0.0, 0.3],
-                       [0.25, 0.05]]])
-
-        p_x0 = sum(sum(p[0, :, :]))  # p(x=0)
-        p_x1 = sum(sum(p[1, :, :]))  # p(x=1)
-
-        # Calculating conditional shannon entropy using the definition
-        # sum [p(x,y,z) * log2 (p(x)/p(x,y,z))]
-        expected = 0
-        for y in range(2):
-            for z in range(2):
-                p_xyz0 = p[0, y, z]     # p(x=0, y, z)
-                p_xyz1 = p[1, y, z]     # p(x=1, y, z)
-
-                if p_xyz0 != 0:
-                    expected += (p_xyz0 * np.log2(p_x0/p_xyz0))
-                if p_xyz1 != 0:
-                    expected += (p_xyz1 * np.log2(p_x1/p_xyz1))
-
-        result = conditional_shannon_entropy(p, 0)
-        self.assertAlmostEqual(result, expected)
-
-    def test_conditional_mutual_information(self):
-        pass
 
 
 class TestTitanicDemo(unittest.TestCase):
