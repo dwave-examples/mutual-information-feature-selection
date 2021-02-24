@@ -23,6 +23,19 @@ from titanic import (prob, shannon_entropy, conditional_shannon_entropy,
                      mutual_information, conditional_mutual_information)
 
 
+class TestTwoDimensionalCalcs(unittest.TestCase):
+    """Verify entropy and mutual information calculations for two random variables."""
+    @classmethod
+    def setUpClass(cls):
+        cls.prob = np.array([[0.5, 0], [0.3, 0.2]])
+
+    def test_shannon_entropy(self):
+        result = shannon_entropy(self.prob)
+
+        expected = -0.5*np.log2(0.5) - 0.3*np.log2(0.3) -0.2*np.log2(0.2)
+        self.assertAlmostEqual(result, expected)
+
+
 class TestTitanicFunctions(unittest.TestCase):
     def test_prob(self):
         data = np.array([[True, 0, 4],
@@ -49,13 +62,6 @@ class TestTitanicFunctions(unittest.TestCase):
         self.assertEqual(np.sum(flat_prob), 1)   # probabilities sum to 1
         self.assertEqual(np.sum(flat_prob==0.4), 1)
         self.assertEqual(np.sum(flat_prob==0.2), 3)
-
-    def test_shannon_entropy(self):
-        prob = np.array([[0.5, 0], [0.3, 0.2]])
-        result = shannon_entropy(prob)
-
-        expected = -0.5*np.log2(0.5) - 0.3*np.log2(0.3) -0.2*np.log2(0.2)
-        self.assertAlmostEqual(result, expected)
 
     def test_conditional_shannon_entropy(self):
         p = np.array([[[0.2, 0.0],
