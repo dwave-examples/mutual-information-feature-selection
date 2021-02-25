@@ -50,6 +50,12 @@ def shannon_entropy(p):
 def conditional_shannon_entropy(p, *conditional_indices):
     """Conditional Shannon entropy H(X|Y) = H(X,Y) - H(Y)."""
 
+    # Sanity check on validity of conditional_indices.  In particular,
+    # try to trap issues in which dimensions have been removed from
+    # probability table through marginalization, but
+    # conditional_indices were not updated accordingly.
+    assert(all(ci < p.ndim for ci in conditional_indices))
+
     axis = tuple(i for i in np.arange(len(p.shape))
                  if i not in conditional_indices)
 
@@ -69,7 +75,15 @@ def conditional_mutual_information(p, j, *conditional_indices):
     """Mutual information between variables X and variable Y conditional on variable Z.
 
     Calculated as I(X;Y|Z) = H(X|Z) - H(X|Y,Z)"""
-    return (conditional_shannon_entropy(np.sum(p, axis=j), *conditional_indices)
+
+    # Compute an updated version of the conditional indices for use
+    # when the probability table is marginalized over dimension j.
+    # This marginalization removes one dimension, so any conditional
+    # indices pointing to dimensions after this one must be adjusted
+    # accordingly.
+    marginal_conditional_indices = [i-1 if i > j else i for i in conditional_indices]
+
+    return (conditional_shannon_entropy(np.sum(p, axis=j), *marginal_conditional_indices)
             - conditional_shannon_entropy(p, j, *conditional_indices))
 
 def maximum_energy_delta_old(bqm):
@@ -133,7 +147,7 @@ def run_demo():
 
     sorted_scores = sorted(scores.items(), key=lambda pair: pair[1], reverse=True)
     dataset = dataset[[column[0] for column in sorted_scores[0:keep]] + ["survived"]]
-    features = set(dataset.columns) - {'survived'}
+    features = sorted(list(set(dataset.columns) - {'survived'}))
 
     """
     # Build a QUBO that maximizes MI between survival and a subset of features
