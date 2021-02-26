@@ -129,11 +129,11 @@ def run_demo():
     dataset = dataset[[column[0] for column in sorted_scores[0:keep]] + ["survived"]]
     features = sorted(list(set(dataset.columns) - {'survived'}))
 
-    variables = {feature: -mutual_information(prob(dataset[['survived', feature]].values), 1)
-                 for feature in features}
+    variables = ((feature, -mutual_information(prob(dataset[['survived', feature]].values), 1))
+                 for feature in features)
 
-    interactions = {(f0, f1): -conditional_mutual_information(prob(dataset[['survived', f0, f1]].values), 1, 2)
-                    for f0, f1 in itertools.permutations(features, 2)}
+    interactions = ((f0, f1, -conditional_mutual_information(prob(dataset[['survived', f0, f1]].values), 1, 2))
+                    for f0, f1 in itertools.permutations(features, 2))
 
     bqm = dimod.BinaryQuadraticModel(variables, interactions, 0, dimod.BINARY)
 
