@@ -129,12 +129,11 @@ def run_demo():
     dataset = dataset[[column[0] for column in sorted_scores[0:keep]] + ["survived"]]
     features = sorted(list(set(dataset.columns) - {'survived'}))
 
+    # Build a QUBO that maximizes MI between survival and a subset of features 
     variables = ((feature, -mutual_information(prob(dataset[['survived', feature]].values), 1))
                  for feature in features)
-
     interactions = ((f0, f1, -conditional_mutual_information(prob(dataset[['survived', f0, f1]].values), 1, 2))
                     for f0, f1 in itertools.permutations(features, 2))
-
     bqm = dimod.BinaryQuadraticModel(variables, interactions, 0, dimod.BINARY)
 
     # Set up a QPU sampler with a fully-connected graph of all the variables
