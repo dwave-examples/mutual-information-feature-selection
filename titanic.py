@@ -88,15 +88,10 @@ def conditional_mutual_information(p, j, *conditional_indices):
 
 def maximum_energy_delta(bqm):
     """Compute conservative bound on maximum change in energy when flipping a single variable"""
-    delta_max = 0
-    for i in bqm.iter_variables():
-        delta = abs(bqm.get_linear(i))
-        for j in bqm.iter_neighbors(i):
-            delta += abs(bqm.get_quadratic(i,j))
-        if delta > delta_max:
-            delta_max = delta
-    return delta_max
-
+    return max(abs(bqm.get_linear(i))
+               + sum(abs(bqm.get_quadratic(i,j))
+                     for j in bqm.iter_neighbors(i))
+               for i in bqm.iter_variables())
 
 def run_demo():
     # Read the feature-engineered data into a pandas dataframe
@@ -106,10 +101,8 @@ def run_demo():
     dataset = pd.read_csv(data_path)
 
     # Rank the MI between survival and every other variable
-    scores = {}
-    features = list(set(dataset.columns).difference(('survived',)))
-    for feature in features:
-        scores[feature] = mutual_information(prob(dataset[['survived', feature]].values), 0)
+    scores = {feature: mutual_information(prob(dataset[['survived', feature]].values), 0)
+              for feature in set(dataset.columns) - {'survived'}}
 
     labels, values = zip(*sorted(scores.items(), key=lambda pair: pair[1], reverse=True))
 
@@ -134,23 +127,14 @@ def run_demo():
 
     sorted_scores = sorted(scores.items(), key=lambda pair: pair[1], reverse=True)
     dataset = dataset[[column[0] for column in sorted_scores[0:keep]] + ["survived"]]
-    features = list(set(dataset.columns).difference(('survived',)))
-    features = sorted(features)
+    features = sorted(list(set(dataset.columns) - {'survived'}))
 
-    # Build a QUBO that maximizes MI between survival and a subset of features
-    bqm = dimod.BinaryQuadraticModel.empty(dimod.BINARY)
-
-    # Add biases as (negative) MI with survival for each feature
-    for feature in features:
-        mi = mutual_information(prob(dataset[['survived', feature]].values), 1)
-        bqm.add_variable(feature, -mi)
-
-    # Add interactions as (negative) MI with survival for each set of 2 features
-    for f0, f1 in itertools.combinations(features, 2):
-        cmi_01 = conditional_mutual_information(prob(dataset[['survived', f0, f1]].values), 1, 2)
-        cmi_10 = conditional_mutual_information(prob(dataset[['survived', f1, f0]].values), 1, 2)
-        bqm.add_interaction(f0, f1, -cmi_01)
-        bqm.add_interaction(f1, f0, -cmi_10)
+    # Build a QUBO that maximizes MI between survival and a subset of features 
+    variables = ((feature, -mutual_information(prob(dataset[['survived', feature]].values), 1))
+                 for feature in features)
+    interactions = ((f0, f1, -conditional_mutual_information(prob(dataset[['survived', f0, f1]].values), 1, 2))
+                    for f0, f1 in itertools.permutations(features, 2))
+    bqm = dimod.BinaryQuadraticModel(variables, interactions, 0, dimod.BINARY)
 
     # Set up a QPU sampler with a fully-connected graph of all the variables
     sampler = DWaveCliqueSampler()
@@ -164,10 +148,8 @@ def run_demo():
     penalty = maximum_energy_delta(bqm)
 
     for k in range(1, len(features) + 1):
-        kbqm = bqm.copy()
-        kbqm.update(dimod.generators.combinations(features, k,
-                                                  strength=penalty))  # Determines the penalty
-
+        kbqm = dimod.generators.combinations(features, k, strength=penalty) # Determines the penalty
+        kbqm.update(bqm)
         sample = sampler.sample(kbqm,
                                 label='Example - MI Feature Selection',
                                 num_reads=10000).first.sample
