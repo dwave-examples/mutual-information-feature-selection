@@ -47,8 +47,13 @@ for solution.
 There are different methods of approximating the hard calculation of optimally
 selecting `k` of `n` features to maximize MI. The approach followed here
 assumes conditional independence of features and limits conditional MI
-calculations to permutations of three features. The optimal set of features is
-then approximated by:
+calculations to permutations of three features. The optimal set of features,
+`S`, is then approximated by:
+
+<!---
+LaTeX equation:
+\underset{S}{\operatorname{argmax}} \; \sum_{i \in S} \left[ I(X_i; Y) + \sum_{j \in S, \, j \ne i} I(X_j; Y \mid X_i) \right]
+--->
 
 ![K of N Approximation](readme_imgs/n_k_approx.png)
 
