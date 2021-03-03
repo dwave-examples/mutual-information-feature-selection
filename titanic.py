@@ -114,7 +114,7 @@ def add_combination_penalty(bqm, k, penalty):
 def mutual_information_feature_selection(dataset, features):
     """Run the MIFS algorithm on a D-Wave solver"""
     
-    # Set up a QPU sampler with a fully-connected graph of all the variables
+    # Set up a QPU sampler that embeds to a fully-connected graph of all the variables
     sampler = DWaveCliqueSampler()
 
     # For each number of features, k, penalize selection of fewer or more features
@@ -122,7 +122,7 @@ def mutual_information_feature_selection(dataset, features):
 
     bqm = mutual_information_bqm(dataset, features)
 
-    # This ensures that the ground state will satisfy the constraints.
+    # This ensures that the soltion will satisfy the constraints.
     penalty = maximum_energy_delta(bqm)
 
     for k in range(1, len(features) + 1):
