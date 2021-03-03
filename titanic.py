@@ -86,6 +86,7 @@ def conditional_mutual_information(p, j, *conditional_indices):
     return (conditional_shannon_entropy(np.sum(p, axis=j), *marginal_conditional_indices)
             - conditional_shannon_entropy(p, j, *conditional_indices))
 
+
 def maximum_energy_delta(bqm):
     """Compute conservative bound on maximum change in energy when flipping a single variable"""
     return max(abs(bqm.get_linear(i))
@@ -93,22 +94,25 @@ def maximum_energy_delta(bqm):
                      for j in bqm.iter_neighbors(i))
                for i in bqm.iter_variables())
 
+
 def mutual_information_bqm(dataset, features):
-    """Build a QUBO that maximizes MI between survival and a subset of features"""
+    """Build a BQM that maximizes MI between survival and a subset of features"""
     variables = ((feature, -mutual_information(prob(dataset[['survived', feature]].values), 1))
                  for feature in features)
     interactions = ((f0, f1, -conditional_mutual_information(prob(dataset[['survived', f0, f1]].values), 1, 2))
                     for f0, f1 in itertools.permutations(features, 2))
     return dimod.BinaryQuadraticModel(variables, interactions, 0, dimod.BINARY)
 
+
 def add_combination_penalty(bqm, k, penalty):
-    """Create a new BQM with an addition k-combination penalty"""
+    """Create a new BQM with an additional penalty biased towards k-combinations"""
     kbqm = dimod.generators.combinations(bqm.variables, k, strength=penalty)
     kbqm.update(bqm)
     return kbqm
 
+
 def mutual_information_feature_selection(dataset, features):
-    """Run the MIFS algoeith on D-Wave"""
+    """Run the MIFS algorithm on D-Wave"""
     
     # Set up a QPU sampler with a fully-connected graph of all the variables
     sampler = DWaveCliqueSampler()
@@ -129,6 +133,7 @@ def mutual_information_feature_selection(dataset, features):
         for fi, f in enumerate(features):
             selected_features[k-1, fi] = sample[f]
     return selected_features
+
 
 def run_demo(dataset):
     # Read the feature-engineered data into a pandas dataframe
