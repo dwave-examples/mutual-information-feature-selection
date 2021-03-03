@@ -136,8 +136,7 @@ def mutual_information_feature_selection(dataset, features, target, num_reads=50
 
 
 def run_demo(dataset, target):
-    # Read the feature-engineered data into a pandas dataframe
-    # Data obtained from http://biostat.mc.vanderbilt.edu/DataSets
+    """Compute MIFS for each value of k and visualize results"""
 
     # Rank the MI between survival and every other variable
     scores = {feature: mutual_information(prob(dataset[[target, feature]].values), 0)
@@ -185,6 +184,8 @@ def run_demo(dataset, target):
 
 
 if __name__ == "__main__":
+    # Read the feature-engineered data into a pandas dataframe
+    # Data obtained from http://biostat.mc.vanderbilt.edu/DataSets
     demo_path = os.path.dirname(os.path.abspath(__file__))
     data_path = os.path.join(demo_path, 'data', 'formatted_titanic.csv')
     dataset = pd.read_csv(data_path)
