@@ -86,6 +86,7 @@ def conditional_mutual_information(p, j, *conditional_indices):
     return (conditional_shannon_entropy(np.sum(p, axis=j), *marginal_conditional_indices)
             - conditional_shannon_entropy(p, j, *conditional_indices))
 
+
 def maximum_energy_delta(bqm):
     """Compute conservative bound on maximum change in energy when flipping a single variable"""
     return max(abs(bqm.get_linear(i))
@@ -93,16 +94,53 @@ def maximum_energy_delta(bqm):
                      for j in bqm.iter_neighbors(i))
                for i in bqm.iter_variables())
 
-def run_demo():
-    # Read the feature-engineered data into a pandas dataframe
-    # Data obtained from http://biostat.mc.vanderbilt.edu/DataSets
-    demo_path = os.path.dirname(os.path.abspath(__file__))
-    data_path = os.path.join(demo_path, 'data', 'formatted_titanic.csv')
-    dataset = pd.read_csv(data_path)
+
+def mutual_information_bqm(dataset, features, target):
+    """Build a BQM that maximizes MI between survival and a subset of features"""
+    variables = ((feature, -mutual_information(prob(dataset[[target, feature]].values), 1))
+                 for feature in features)
+    interactions = ((f0, f1, -conditional_mutual_information(prob(dataset[[target, f0, f1]].values), 1, 2))
+                    for f0, f1 in itertools.permutations(features, 2))
+    return dimod.BinaryQuadraticModel(variables, interactions, 0, dimod.BINARY)
+
+
+def add_combination_penalty(bqm, k, penalty):
+    """Create a new BQM with an additional penalty biased towards k-combinations"""
+    kbqm = dimod.generators.combinations(bqm.variables, k, strength=penalty)
+    kbqm.update(bqm)
+    return kbqm
+
+
+def mutual_information_feature_selection(dataset, features, target, num_reads=5000):
+    """Run the MIFS algorithm on a QPU solver"""
+    
+    # Set up a QPU sampler that embeds to a fully-connected graph of all the variables
+    sampler = DWaveCliqueSampler()
+
+    # For each number of features, k, penalize selection of fewer or more features
+    selected_features = np.zeros((len(features), len(features)))
+
+    bqm = mutual_information_bqm(dataset, features, target)
+
+    # This ensures that the soltion will satisfy the constraints.
+    penalty = maximum_energy_delta(bqm)
+
+    for k in range(1, len(features) + 1):
+        kbqm = add_combination_penalty(bqm, k, penalty)
+        sample = sampler.sample(kbqm,
+                                label='Example - MI Feature Selection',
+                                num_reads=num_reads).first.sample
+        for fi, f in enumerate(features):
+            selected_features[k-1, fi] = sample[f]
+    return selected_features
+
+
+def run_demo(dataset, target):
+    """Compute MIFS for each value of k and visualize results"""
 
     # Rank the MI between survival and every other variable
-    scores = {feature: mutual_information(prob(dataset[['survived', feature]].values), 0)
-              for feature in set(dataset.columns) - {'survived'}}
+    scores = {feature: mutual_information(prob(dataset[[target, feature]].values), 0)
+              for feature in set(dataset.columns) - {target}}
 
     labels, values = zip(*sorted(scores.items(), key=lambda pair: pair[1], reverse=True))
 
@@ -127,36 +165,9 @@ def run_demo():
 
     sorted_scores = sorted(scores.items(), key=lambda pair: pair[1], reverse=True)
     dataset = dataset[[column[0] for column in sorted_scores[0:keep]] + ["survived"]]
-    features = sorted(list(set(dataset.columns) - {'survived'}))
-
-    # Build a QUBO that maximizes MI between survival and a subset of features 
-    variables = ((feature, -mutual_information(prob(dataset[['survived', feature]].values), 1))
-                 for feature in features)
-    interactions = ((f0, f1, -conditional_mutual_information(prob(dataset[['survived', f0, f1]].values), 1, 2))
-                    for f0, f1 in itertools.permutations(features, 2))
-    bqm = dimod.BinaryQuadraticModel(variables, interactions, 0, dimod.BINARY)
-
-    # Set up a QPU sampler with a fully-connected graph of all the variables
-    sampler = DWaveCliqueSampler()
-
-    # For each number of features, k, penalize selection of fewer or more features
-    selected_features = np.zeros((len(features), len(features)))
-
-    # Specify the penalty based on the maximum change in the objective
-    # that could occur by flipping a single variable.  This ensures
-    # that the ground state will satisfy the constraints.
-    penalty = maximum_energy_delta(bqm)
-
-    for k in range(1, len(features) + 1):
-        kbqm = dimod.generators.combinations(features, k, strength=penalty) # Determines the penalty
-        kbqm.update(bqm)
-        sample = sampler.sample(kbqm,
-                                label='Example - MI Feature Selection',
-                                num_reads=10000).first.sample
-
-        for fi, f in enumerate(features):
-            selected_features[k-1, fi] = sample[f]
-
+    features = sorted(list(set(dataset.columns) - {target}))
+    selected_features = mutual_information_feature_selection(dataset, features, target)
+    
     # Plot the best feature set per number of selected features
     ax2 = plt.subplot(1, 2, 2)
     ax2.set_title("Best Feature Selection")
@@ -171,10 +182,15 @@ def run_demo():
     ax2.grid(which='minor', color='black')
     ax2.imshow(selected_features, cmap=colors.ListedColormap(['white', 'red']))
 
+
+if __name__ == "__main__":
+    # Read the feature-engineered data into a pandas dataframe
+    # Data obtained from http://biostat.mc.vanderbilt.edu/DataSets
+    demo_path = os.path.dirname(os.path.abspath(__file__))
+    data_path = os.path.join(demo_path, 'data', 'formatted_titanic.csv')
+    dataset = pd.read_csv(data_path)
+    run_demo(dataset, 'survived')
     plots_path = os.path.join(demo_path, "plots.png")
     plt.savefig(plots_path, bbox_inches="tight")
     print("Your plots are saved to {}".format(plots_path))
 
-
-if __name__ == "__main__":
-    run_demo()
