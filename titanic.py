@@ -112,7 +112,7 @@ def add_combination_penalty(bqm, k, penalty):
 
 
 def mutual_information_feature_selection(dataset, features, target, num_reads=5000):
-    """Run the MIFS algorithm on a D-Wave solver"""
+    """Run the MIFS algorithm on a QPU solver"""
     
     # Set up a QPU sampler that embeds to a fully-connected graph of all the variables
     sampler = DWaveCliqueSampler()
