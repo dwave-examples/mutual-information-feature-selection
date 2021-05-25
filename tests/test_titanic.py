@@ -135,12 +135,18 @@ class TestThreeDimensionalCalcs(unittest.TestCase):
         self.assertEqual(np.sum(flat_prob==0.2), 3)
 
 
-class TestTitanicDemo(unittest.TestCase):
-    def test_run_demo(self):
-        """Run smoke test on demo code"""
+class TestIntegration(unittest.TestCase):
+    @unittest.skipIf(os.getenv('SKIP_INT_TESTS'), "Skipping integration test.")
+    def test_integration(self):
+        """Test integration of demo script."""
         # /path/to/demos/mutual-information-feature-selection/
         project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-        # Raise error when return code is nonzero
         demo_file = os.path.join(project_dir, 'titanic.py')
-        subprocess.check_output([sys.executable, demo_file])
+
+        output = subprocess.check_output([sys.executable, demo_file])
+        output = output.decode('utf-8') # Bytes to str
+        output = output.lower()
+
+        self.assertIn('your plots are saved', output)
+        self.assertNotIn('error', output)
+        self.assertNotIn('warning', output)
