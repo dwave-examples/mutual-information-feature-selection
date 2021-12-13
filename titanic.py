@@ -91,8 +91,8 @@ def maximum_energy_delta(bqm):
     """Compute conservative bound on maximum change in energy when flipping a single variable"""
     return max(abs(bqm.get_linear(i))
                + sum(abs(bqm.get_quadratic(i,j))
-                     for j in bqm.iter_neighbors(i))
-               for i in bqm.iter_variables())
+                     for j, _ in bqm.iter_neighborhood(i))
+               for i in bqm.variables)
 
 
 def mutual_information_bqm(dataset, features, target):
