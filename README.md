@@ -13,6 +13,16 @@ title, class, port of embarkation, etc). Its output is a ranking of subsets of
 features that have high MI with the variable of interest (survival) and low
 redundancy.
 
+---
+**Note:** This example solves a 
+[binary quadratic model (BQM)](https://docs.ocean.dwavesys.com/en/stable/concepts/bqm.html)
+directly on a D-Wave quantum computer's quantum processing unit (QPU).
+The [Feature Selection for CQM](https://github.com/dwave-examples/feature-selection-cqm) example solves this same problem using a 
+[constrained quadratic model](https://docs.ocean.dwavesys.com/en/stable/concepts/cqm.html)
+on a Leap&trade; quantum-classical 
+[hybrid solver](https://docs.ocean.dwavesys.com/en/stable/concepts/hybrid.html). 
+---
+
 ## Usage
 
 ```bash
