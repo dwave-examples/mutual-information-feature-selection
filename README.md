@@ -1,5 +1,8 @@
+[![Open in Leap IDE](
+  https://cdn-assets.cloud.dwavesys.com/shared/latest/badges/leapide.svg)](
+  https://ide.dwavesys.io/#https://github.com/dwave-examples/mutual-information-feature-selection)
 [![Linux/Mac/Windows build status](
-  https://circleci.com/gh/dwave-examples/mutual-information-feature-selection.svg?style=svg)](
+  https://circleci.com/gh/dwave-examples/mutual-information-feature-selection.svg?style=shield)](
   https://circleci.com/gh/dwave-examples/mutual-information-feature-selection)
 
 # MIQUBO Method of Feature Selection
